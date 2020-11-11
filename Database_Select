@@ -1,0 +1,53 @@
+# Задача: Используя схему БД склада с таблицами goods (товары), warehouse (склады), product (продукты), brand (бренды продуктов), составить запрос, 
+который выводит список брендов (brand.name) с указанием количества единиц продукта в порядке убывания их количества на каждом складе для текущего бренда. 
+Необходимо учитывать, что по некоторым брендам на складах могут отсутствовать товары на единицу времени, при этом в вывод такие бренды также должны попадать. 
+Под отсутствием понимать отсутствие записи продукта в таблице товаров (goods), а не нулевое количество.
+warehouse: ID, name
+brand: ID, name, country
+product: ID, name, brandid = brand.ID
+goods: ID, warehouseid = warehouse.ID, productid = product.ID, quantity
+________________________
+
+SELECT brand.name as 'brand_name', product.name as 'product_name', goods.quantity as 'goods_quantity', warehouse.name as 'warehouse_name'
+    FROM brand LEFT JOIN product ON brand.id = product.brandid
+    LEFT JOIN goods ON product.id = goods_.productid
+    LEFT JOIN warehouse ON goods.warehouseid = warehouse.id
+    ORDER BY goods.quantity DESC;
+__________________
+#	вывести список складов (warehouse.name) с суммарным остатками продуктов немецких брендов (brand.country="DE").
+
+SELECT warehouse.id, warehouse.name as 'warehouse_name', SUM(goods.quantity) as 'sum_goods_quantity'
+	FROM warehouse LEFT JOIN goods ON warehouse.id = goods.warehouseid
+	LEFT JOIN product ON product.id = goods.productid 
+	LEFT JOIN brand ON brand.id = product.brandid
+	WHERE brand.country = 'DE'
+	GROUP BY warehouse.id;
+________________________
+#	вывести продукты (product.name) с указанием их бренда (brand.name), которые в данный момент отсутствуют на всех складах. 
+Под отсутствием понимать отсутствие записи продукта в таблице товаров (goods), а не нулевое количество.
+
+SELECT product.name as 'product_name', brand.name as 'brand_name'
+	FROM product LEFT JOIN brand ON product.brandid = brand.id
+	WHERE NOT EXISTS (SELECT * FROM goods
+	WHERE product.id = goods.productid);
+________________________
+# 	вывести те продукты (product.name), остатки по которым по всем складам суммарно превышают 100 единиц (goods.quantity) 
+с указанием склада (warehouse.name), на котором находится наибольшее количество единиц.
+
+SELECT product_name,  warehouse_name, max_quantity
+FROM (	SELECT product.name AS product_name, warehouse.name AS warehouse_name, MAX( goods.quantity ) AS max_quantity
+	FROM goods
+	JOIN product ON product.id = goods.productid
+	JOIN warehouse ON warehouse.id = goods.warehouseid
+	WHERE productid IN ( SELECT productid
+				FROM goods
+				GROUP BY goods.productid
+				HAVING SUM(goods.quantity) > 100 )
+	GROUP BY goods.productid, warehouse.name
+	ORDER BY product.name, max_quantity DESC ) AS res
+GROUP BY product_name;
+
+
+
+
+ 
