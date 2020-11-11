@@ -1,0 +1,23 @@
+CREATE DATABASE testdata;
+USE testdata;
+CREATE TABLE warehouse (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, name VARCHAR(20));
+CREATE TABLE brand (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, name VARCHAR(20), country VARCHAR(15));
+CREATE TABLE product (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, 
+    name VARCHAR(20), brandid INT, 
+    FOREIGN KEY (brandid) REFERENCES brand (id));
+CREATE TABLE goods (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    warehouseid INT, productid INT, quantity INT,
+    FOREIGN KEY (warehouseid) REFERENCES warehouse (id),
+    FOREIGN KEY (productid) REFERENCES product (id));
+INSERT INTO warehouse (name) VALUES ('box1'), ('box2'), ('box3'), ('box4'), ('box5');
+INSERT INTO brand (name, country)  VALUES ('barb', 'EN'), ('adi', 'USA'), ('che', 'BG'), ('fard', 'RU'), ('abc', 'NULL');
+INSERT INTO product (name, brandid) VALUES ('good1', '1'), ('good2', '2'), ('good3', '3'), ('good4', '4'), ('good5', '5');
+INSERT INTO goods (warehouseid, productid, quantity) VALUES ('1', '1', '5'), ('1', '2', '36'), ('4', '4', '156'), ('2', '4', '0'), ('5', '5', '200');
+
+SHOW TABLES;
+DESCRIBE product;
+SELECT * FROM goods;
+
+UPDATE goods_
+    SET quantity = '9'
+    WHERE id = 4;
